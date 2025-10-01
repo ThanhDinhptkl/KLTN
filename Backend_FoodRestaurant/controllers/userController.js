@@ -27,9 +27,14 @@ const loginUser = async (req, res) => {
       success: true,
       message: "User logged in successfully",
       token,
-      role: user.role,
-      name: user.name,
-      email: user.email,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        address: user.address,
+      },
     });
   } catch (error) {
     console.log(error);
@@ -41,7 +46,7 @@ const loginUser = async (req, res) => {
 };
 
 const createToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET);
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
 //register user
@@ -115,4 +120,29 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-export { loginUser, registerUser, getAllUsers };
+const updateProfile = async (req, res) => {
+  try {
+    const { name, phone, address } = req.body;
+
+    const updatedUser = await userModel.findByIdAndUpdate(
+      req.body.userId, // đã có từ authMiddleware
+      { name, phone, address },
+      { new: true, select: "-password" }
+    );
+
+    if (!updatedUser) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: "Failed to update profile" });
+  }
+};
+
+export { loginUser, registerUser, getAllUsers, updateProfile };
