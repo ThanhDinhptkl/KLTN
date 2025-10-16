@@ -9,6 +9,8 @@ import orderRouter from "./routes/orderRoute.js";
 import bodyParser from "body-parser";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import comboRoutes from "./routes/comboRoutes.js";
+import adminStatsRouter from "./routes/adminStats.js";
+import path from "path";
 
 // app config
 const app = express();
@@ -25,11 +27,13 @@ connectDB();
 // api endpoints
 app.use("/api/food", foodRouter);
 app.use("/images", express.static("uploads"));
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/combos", comboRoutes);
+app.use("/api/admin/stats", adminStatsRouter);
 
 app.get("/", (req, res) => res.send("API Working!"));
 
