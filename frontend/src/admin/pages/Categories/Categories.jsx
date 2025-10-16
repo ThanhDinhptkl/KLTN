@@ -1,3 +1,4 @@
+
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -73,6 +74,7 @@ export const Categories = () => {
     <div className="categories-container">
       <h3>Quản lý Danh mục</h3>
 
+      {/* Form thêm/sửa */}
       <form className="category-form" onSubmit={handleSubmit}>
         <input
           type="text"
@@ -102,46 +104,34 @@ export const Categories = () => {
         )}
       </form>
 
-      <table className="categories-table">
-        <thead>
-          <tr>
-            <th>STT</th>
-            <th>Tên danh mục</th>
-            <th>Hình ảnh</th>
-            <th>Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          {categories.map((cat, idx) => (
-            <tr key={cat._id}>
-              <td>{idx + 1}</td>
-              <td>{cat.name}</td>
-              <td>
-                {cat.image ? (
-                  <img
-                    src={`${url}/${cat.image}`}
-                    alt={cat.name}
-                    style={{ width: 60, height: 60, objectFit: "cover" }}
-                  />
-                ) : (
-                  "—"
-                )}
-              </td>
-              <td>
-                <button
-                  onClick={() => {
-                    setEditing(cat);
-                    setNewName(cat.name);
-                  }}
-                >
-                  Sửa
-                </button>
-                <button onClick={() => handleDelete(cat._id)}>Xóa</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Danh mục dạng hình tròn */}
+      <div className="categories-grid">
+        {categories.map((cat) => (
+          <div className="category-card" key={cat._id}>
+            {cat.image ? (
+              <img
+                src={`${url}/${cat.image}`}
+                alt={cat.name}
+                className="category-img"
+              />
+            ) : (
+              <div className="category-placeholder">?</div>
+            )}
+            <p className="category-name">{cat.name}</p>
+            <div className="category-actions">
+              <button
+                onClick={() => {
+                  setEditing(cat);
+                  setNewName(cat.name);
+                }}
+              >
+                Sửa
+              </button>
+              <button onClick={() => handleDelete(cat._id)}>Xóa</button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

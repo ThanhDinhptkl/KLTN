@@ -1,204 +1,3 @@
-// import React, { useState, useEffect } from "react";
-// import axios from "axios";
-// import "./AdminCombo.css";
-
-// export const AdminCombo = () => {
-//   const [combos, setCombos] = useState([]);
-//   const [foods, setFoods] = useState([]);
-//   const [formData, setFormData] = useState({
-//     name: "",
-//     description: "",
-//     price: "",
-//     discountPrice: "",
-//     items: [],
-//     image: null,
-//   });
-//   const [editingId, setEditingId] = useState(null);
-
-//   const url = "http://localhost:4000";
-
-//   // ===== Helper format =====
-//   const formatCurrency = (value) => {
-//     if (!value) return "";
-//     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-//   };
-
-//   const parseCurrency = (value) => {
-//     return value.replace(/,/g, "");
-//   };
-
-//   // Fetch combos
-//   const fetchCombos = async () => {
-//     const res = await axios.get(`${url}/api/combos`);
-//     setCombos(res.data);
-//   };
-
-//   // Fetch foods
-//   const fetchFoods = async () => {
-//     const res = await axios.get(`${url}/api/food`);
-//     setFoods(res.data.data || []);
-//   };
-
-//   useEffect(() => {
-//     fetchCombos();
-//     fetchFoods();
-//   }, []);
-
-//   // Handle input change
-//   const handleChange = (e) => {
-//     const { name, value, files } = e.target;
-//     if (name === "image") {
-//       setFormData({ ...formData, image: files[0] });
-//     } else if (name === "price" || name === "discountPrice") {
-//       const numericValue = value.replace(/[^\d,]/g, "");
-//       setFormData({ ...formData, [name]: numericValue });
-//     } else {
-//       setFormData({ ...formData, [name]: value });
-//     }
-//   };
-
-//   // Handle select items
-//   const toggleItem = (id) => {
-//     setFormData((prev) => {
-//       const newItems = prev.items.includes(id)
-//         ? prev.items.filter((item) => item !== id)
-//         : [...prev.items, id];
-//       return { ...prev, items: newItems };
-//     });
-//   };
-
-//   // Submit
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     const data = new FormData();
-//     Object.keys(formData).forEach((key) => {
-//       if (key === "items") {
-//         data.append("items", JSON.stringify(formData.items));
-//       } else if (key === "price" || key === "discountPrice") {
-//         data.append(key, parseCurrency(formData[key]));
-//       } else {
-//         data.append(key, formData[key]);
-//       }
-//     });
-
-//     if (editingId) {
-//       await axios.put(`${url}/api/combos/${editingId}`, data);
-//     } else {
-//       await axios.post(`${url}/api/combos`, data);
-//     }
-
-//     setFormData({
-//       name: "",
-//       description: "",
-//       price: "",
-//       discountPrice: "",
-//       items: [],
-//       image: null,
-//     });
-//     setEditingId(null);
-//     fetchCombos();
-//   };
-
-//   // Edit
-//   const handleEdit = (combo) => {
-//     setEditingId(combo._id);
-//     setFormData({
-//       name: combo.name,
-//       description: combo.description,
-//       price: combo.price.toString(),
-//       discountPrice: combo.discountPrice.toString(),
-//       items: combo.items.map((i) => i._id),
-//       image: null,
-//     });
-//   };
-
-//   // Delete
-//   const handleDelete = async (id) => {
-//     if (window.confirm("Bạn có chắc muốn xóa combo này?")) {
-//       await axios.delete(`${url}/api/combos/${id}`);
-//       fetchCombos();
-//     }
-//   };
-
-//   return (
-//     <div className="admin-combo">
-//       <h2>Quản lý Combo Ưu Đãi</h2>
-
-//       <form className="combo-form" onSubmit={handleSubmit}>
-//         <input
-//           type="text"
-//           name="name"
-//           placeholder="Tên combo"
-//           value={formData.name}
-//           onChange={handleChange}
-//           required
-//         />
-//         <textarea
-//           name="description"
-//           placeholder="Mô tả"
-//           value={formData.description}
-//           onChange={handleChange}
-//         />
-//         <input
-//           type="text"
-//           name="price"
-//           placeholder="Giá gốc"
-//           value={formatCurrency(formData.price)}
-//           onChange={handleChange}
-//           required
-//         />
-//         <input
-//           type="text"
-//           name="discountPrice"
-//           placeholder="Giá ưu đãi"
-//           value={formatCurrency(formData.discountPrice)}
-//           onChange={handleChange}
-//         />
-//         <label>Chọn món trong combo:</label>
-//         <div className="food-checkboxes">
-//           {foods.map((food) => (
-//             <label key={food._id}>
-//               <input
-//                 type="checkbox"
-//                 checked={formData.items.includes(food._id)}
-//                 onChange={() => toggleItem(food._id)}
-//               />
-//               {food.name}
-//             </label>
-//           ))}
-//         </div>
-//         <input type="file" name="image" onChange={handleChange} />
-
-//         <button type="submit">
-//           {editingId ? "Cập nhật Combo" : "Thêm Combo"}
-//         </button>
-//       </form>
-
-//       <h3>Danh sách Combo</h3>
-//       <div className="combo-list-admin">
-//         {combos.map((combo) => (
-//           <div key={combo._id} className="combo-card-admin">
-//             <img src={`${url}/${combo.image}`} alt={combo.name} />
-//             <div>
-//               <h4>{combo.name}</h4>
-//               <p>{combo.description}</p>
-//               <p>
-//                 Giá:{" "}
-//                 <del>{formatCurrency(combo.price)}₫</del>{" "}
-//                 <strong>{formatCurrency(combo.discountPrice)}₫</strong>
-//               </p>
-//               <p>Món: {combo.items.map((i) => i.name).join(", ")}</p>
-//               <button onClick={() => handleEdit(combo)}>Sửa</button>
-//               <button onClick={() => handleDelete(combo._id)}>Xóa</button>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default AdminCombo;
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./AdminCombo.css";
@@ -206,6 +5,8 @@ import "./AdminCombo.css";
 export const AdminCombo = () => {
   const [combos, setCombos] = useState([]);
   const [foods, setFoods] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -215,96 +16,114 @@ export const AdminCombo = () => {
     image: null,
   });
   const [editingId, setEditingId] = useState(null);
-
   const url = "http://localhost:4000";
 
-  // ===== Helper format =====
-  const formatCurrency = (value) => {
-    if (!value) return "0";
-    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  };
+  const formatCurrency = (value) =>
+    !value ? "0" : value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const parseCurrency = (value) => value.toString().replace(/,/g, "");
 
-  const parseCurrency = (value) => {
-    return value.toString().replace(/,/g, "");
-  };
-
-  // Fetch combos
   const fetchCombos = async () => {
     const res = await axios.get(`${url}/api/combos`);
     setCombos(res.data);
   };
 
-  // Fetch foods
   const fetchFoods = async () => {
     const res = await axios.get(`${url}/api/food`);
     setFoods(res.data.data || []);
   };
 
+  const fetchCategories = async () => {
+    const res = await axios.get(`${url}/api/categories`);
+    setCategories(res.data);
+  };
+
   useEffect(() => {
     fetchCombos();
     fetchFoods();
+    fetchCategories();
   }, []);
 
-  // Handle input change
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "image") {
-      setFormData({ ...formData, image: files[0] });
-    } else if (name === "discountPrice") {
-      const numericValue = value.replace(/[^\d,]/g, "");
-      setFormData({ ...formData, discountPrice: numericValue });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+  const updateTotalPrice = (itemsList) => {
+    const total = itemsList.reduce((sum, item) => {
+      const food = foods.find((f) => f._id === item.id);
+      return sum + (food ? food.price * item.quantity : 0);
+    }, 0);
+    return total;
   };
 
-  // Handle select items
-  const toggleItem = (id) => {
+  const addItem = (foodId) => {
     setFormData((prev) => {
-      const newItems = prev.items.includes(id)
-        ? prev.items.filter((item) => item !== id)
-        : [...prev.items, id];
+      const existing = prev.items.find((i) => i.id === foodId);
+      let updatedItems;
 
-      // Tính lại giá gốc
-      const totalPrice = newItems.reduce((sum, itemId) => {
-        const food = foods.find((f) => f._id === itemId);
-        return sum + (food ? food.price : 0);
-      }, 0);
+      if (existing) {
+        updatedItems = prev.items.map((i) =>
+          i.id === foodId ? { ...i, quantity: i.quantity + 1 } : i
+        );
+      } else {
+        updatedItems = [...prev.items, { id: foodId, quantity: 1 }];
+      }
 
-      return { ...prev, items: newItems, price: totalPrice };
+      return { ...prev, items: updatedItems, price: updateTotalPrice(updatedItems) };
     });
   };
 
-  // Submit
+  const removeItem = (foodId) => {
+    setFormData((prev) => {
+      const existing = prev.items.find((i) => i.id === foodId);
+      if (!existing) return prev;
+
+      let updatedItems;
+      if (existing.quantity > 1) {
+        updatedItems = prev.items.map((i) =>
+          i.id === foodId ? { ...i, quantity: i.quantity - 1 } : i
+        );
+      } else {
+        updatedItems = prev.items.filter((i) => i.id !== foodId);
+      }
+
+      return { ...prev, items: updatedItems, price: updateTotalPrice(updatedItems) };
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const data = new FormData();
     data.append("name", formData.name);
     data.append("description", formData.description);
     data.append("price", formData.price);
     data.append("discountPrice", parseCurrency(formData.discountPrice));
-    data.append("items", JSON.stringify(formData.items));
+    data.append("items", JSON.stringify(formData.items.map((i) => i.id)));
     if (formData.image) data.append("image", formData.image);
 
-    if (editingId) {
-      await axios.put(`${url}/api/combos/${editingId}`, data);
-    } else {
-      await axios.post(`${url}/api/combos`, data);
-    }
+    try {
+      if (editingId) {
+        await axios.put(`${url}/api/combos/${editingId}`, data, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        await axios.post(`${url}/api/combos`, data, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
 
-    setFormData({
-      name: "",
-      description: "",
-      price: 0,
-      discountPrice: "",
-      items: [],
-      image: null,
-    });
-    setEditingId(null);
-    fetchCombos();
+      setFormData({
+        name: "",
+        description: "",
+        price: 0,
+        discountPrice: "",
+        items: [],
+        image: null,
+      });
+      setEditingId(null);
+      fetchCombos();
+    } catch (err) {
+      console.error("❌ Lỗi khi lưu combo:", err);
+      alert("Không thể lưu combo. Kiểm tra console để xem chi tiết.");
+    }
   };
 
-  // Edit
   const handleEdit = (combo) => {
     setEditingId(combo._id);
     setFormData({
@@ -312,12 +131,15 @@ export const AdminCombo = () => {
       description: combo.description,
       price: combo.price,
       discountPrice: combo.discountPrice.toString(),
-      items: combo.items.map((i) => i._id),
+      items: combo.items.map((i) => ({
+        id: i._id || i.id,
+        quantity: i.quantity || 1,
+      })),
       image: null,
     });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Delete
   const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc muốn xóa combo này?")) {
       await axios.delete(`${url}/api/combos/${id}`);
@@ -325,79 +147,144 @@ export const AdminCombo = () => {
     }
   };
 
+  // --- Lọc món ăn theo danh mục ---
+const filteredFoods =
+  selectedCategory === "all"
+    ? foods
+    : foods.filter((f) => {
+        const categoryId =
+          typeof f.categoryId === "object"
+            ? f.categoryId._id
+            : f.categoryId;
+        return categoryId?.toString() === selectedCategory.toString();
+      });
+;
+
+
   return (
     <div className="admin-combo">
-      <h2>Quản lý Combo Ưu Đãi</h2>
+      <h2 className="title">🎁 Quản lý Combo Ưu Đãi</h2>
 
-      <form className="combo-form" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="name"
-          placeholder="Tên combo"
-          value={formData.name}
-          onChange={handleChange}
-          required
-        />
+      <form className="combo-form glassy" onSubmit={handleSubmit}>
+        <div className="form-grid">
+          <input
+            type="text"
+            placeholder="Tên combo"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Giá ưu đãi"
+            value={formatCurrency(formData.discountPrice)}
+            onChange={(e) =>
+              setFormData({ ...formData, discountPrice: e.target.value })
+            }
+          />
+          <input
+            type="text"
+            placeholder="Giá gốc"
+            value={formatCurrency(formData.price)}
+            readOnly
+          />
+        </div>
+
         <textarea
-          name="description"
-          placeholder="Mô tả"
+          placeholder="Mô tả combo..."
           value={formData.description}
-          onChange={handleChange}
+          onChange={(e) =>
+            setFormData({ ...formData, description: e.target.value })
+          }
         />
 
-        {/* Giá gốc: chỉ hiển thị, không nhập tay */}
-        <input
-          type="text"
-          name="price"
-          placeholder="Giá gốc"
-          value={formatCurrency(formData.price)}
-          readOnly
-        />
-
-        <input
-          type="text"
-          name="discountPrice"
-          placeholder="Giá ưu đãi"
-          value={formatCurrency(formData.discountPrice)}
-          onChange={handleChange}
-        />
-
-        <label>Chọn món trong combo:</label>
-        <div className="food-checkboxes">
-          {foods.map((food) => (
-            <label key={food._id}>
-              <input
-                type="checkbox"
-                checked={formData.items.includes(food._id)}
-                onChange={() => toggleItem(food._id)}
-              />
-              {food.name} ({formatCurrency(food.price)}₫)
-            </label>
+        <label className="section-label">🍱 Chọn danh mục món ăn:</label>
+        <div className="category-buttons">
+          <button
+            type="button"
+            className={selectedCategory === "all" ? "active" : ""}
+            onClick={() => setSelectedCategory("all")}
+          >
+            Tất cả
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat._id}
+              type="button"
+              className={selectedCategory === cat._id ? "active" : ""}
+              onClick={() => setSelectedCategory(cat._id)}
+            >
+              {cat.name}
+            </button>
           ))}
         </div>
 
-        <input type="file" name="image" onChange={handleChange} />
+        <div className="food-list">
+          {filteredFoods.map((food) => {
+            const item = formData.items.find((i) => i.id === food._id);
+            return (
+              <div key={food._id} className="food-item-row">
+                <img src={`${url}/${food.image}`} alt={food.name} />
+                <div className="food-info">
+                  <span>{food.name}</span>
+                  <p>{formatCurrency(food.price)}₫</p>
+                </div>
+                <div className="quantity-controls">
+                  <button type="button" onClick={() => removeItem(food._id)}>
+                    -
+                  </button>
+                  <span>{item ? item.quantity : 0}</span>
+                  <button type="button" onClick={() => addItem(food._id)}>
+                    +
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
-        <button type="submit">
-          {editingId ? "Cập nhật Combo" : "Thêm Combo"}
+        <label className="section-label">📷 Ảnh combo:</label>
+        <input
+          type="file"
+          onChange={(e) =>
+            setFormData({ ...formData, image: e.target.files[0] })
+          }
+        />
+
+        <button type="submit" className="btn-submit">
+          {editingId ? "💾 Cập nhật Combo" : "➕ Thêm Combo"}
         </button>
       </form>
 
-      <h3>Danh sách Combo</h3>
+      <h3 className="subtitle">Danh sách Combo</h3>
       <div className="combo-list-admin">
         {combos.map((combo) => (
           <div key={combo._id} className="combo-card-admin">
-            <img src={`${url}/${combo.image}`} alt={combo.name} />
-            <div>
+            <img src={`${url}/uploads/${combo.image}`} alt={combo.name} />
+            <div className="combo-info">
               <h4>{combo.name}</h4>
-              <p>{combo.description}</p>
-              <p>
-                Giá: <del>{formatCurrency(combo.price)}₫</del>{" "}
+              <p className="desc">{combo.description}</p>
+              <p className="price">
+                <del>{formatCurrency(combo.price)}₫</del>{" "}
                 <strong>{formatCurrency(combo.discountPrice)}₫</strong>
               </p>
-              <p>Món: {combo.items.map((i) => i.name).join(", ")}</p>
-              <button onClick={() => handleEdit(combo)}>Sửa</button>
-              <button onClick={() => handleDelete(combo._id)}>Xóa</button>
+              <p className="items">
+                Món:{" "}
+                {combo.items
+                  .map((i) => `${i.name || i.id} x${i.quantity || 1}`)
+                  .join(", ")}
+              </p>
+              <div className="btn-group">
+                <button className="edit" onClick={() => handleEdit(combo)}>
+                  ✏️ Sửa
+                </button>
+                <button
+                  className="delete"
+                  onClick={() => handleDelete(combo._id)}
+                >
+                  🗑️ Xóa
+                </button>
+              </div>
             </div>
           </div>
         ))}

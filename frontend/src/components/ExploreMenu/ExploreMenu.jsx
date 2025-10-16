@@ -13,7 +13,6 @@ export default function ExploreMenu() {
       try {
         const res = await fetch("http://localhost:4000/api/categories");
         const data = await res.json();
-        console.log("categories:", data);
         setCategories(data);
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -28,22 +27,37 @@ export default function ExploreMenu() {
 
   return (
     <div className="explore-menu">
-      <h2>Danh mục món ăn</h2>
+      <div className="explore-menu-header">
+        <h2>Danh mục món ăn</h2>
+      </div>
       <div className="explore-menu-list">
-        <button
-          onClick={() => setSelectedCategory("all")}
+        {/* Nút "Tất cả" */}
+        <div
           className="explore-menu-item"
+          onClick={() => setSelectedCategory("all")}
         >
-          Tất cả
-        </button>
+          <div className="explore-menu-img all">ALL</div>
+          <p>Tất cả</p>
+        </div>
+
+        {/* Danh mục từ API */}
         {categories.map((item) => (
-          <button
+          <div
             key={item._id}
-            onClick={() => setSelectedCategory(item.name)}
             className="explore-menu-item"
+            onClick={() => setSelectedCategory(item.name)}
           >
-            {item.name}
-          </button>
+            {item.image ? (
+              <img
+                src={`http://localhost:4000/${item.image}`}
+                alt={item.name}
+                className="explore-menu-img"
+              />
+            ) : (
+              <div className="explore-menu-img placeholder">?</div>
+            )}
+            <p>{item.name}</p>
+          </div>
         ))}
       </div>
     </div>
